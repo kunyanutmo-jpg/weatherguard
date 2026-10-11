@@ -277,6 +277,33 @@ locationsDialog.addEventListener('close', () => {
 
 const sessionLogout = document.querySelector('#session-logout');
 const sessionToken = sessionStorage.getItem('weatherguard_api_token');
+
+function setUserIdentity(name, email) {
+	const displayName = name || 'ผู้เยี่ยมชม';
+	document.querySelector('#greeting-name').textContent = displayName;
+	document.querySelector('#profile-name').textContent = displayName;
+	document.querySelector('#profile-email').textContent = email || 'กรุณาเข้าสู่ระบบ';
+	document.querySelector('#profile-avatar').textContent = Array.from(displayName.trim())[0] ?? 'ผ';
+}
+
+async function loadUserIdentity() {
+	if (!sessionToken) return;
+	try {
+		const response = await fetch('/api/user', {
+			headers: { Accept: 'application/json', Authorization: `Bearer ${sessionToken}` },
+		});
+		if (!response.ok) {
+			sessionStorage.removeItem('weatherguard_api_token');
+			sessionLogout.hidden = true;
+			return;
+		}
+		const user = await response.json();
+		setUserIdentity(user.name, user.email);
+	} catch {
+		setUserIdentity('', '');
+	}
+}
+
 if (sessionLogout) {
 	sessionLogout.hidden = !sessionToken;
 	sessionLogout.addEventListener('click', async () => {
@@ -293,3 +320,5 @@ if (sessionLogout) {
 		}
 	});
 }
+
+loadUserIdentity();

@@ -45,7 +45,6 @@
             <nav class="main-nav" aria-label="เมนูหลัก">
                 <a class="nav-link active" href="#overview"><svg class="icon"><use href="#i-grid"/></svg> ภาพรวม</a>
                 <a class="nav-link" href="{{ route('weather.map') }}"><svg class="icon"><use href="#i-map"/></svg> แผนที่สภาพอากาศ</a>
-                <a class="nav-link" href="{{ route('login') }}"><svg class="icon"><use href="#i-settings"/></svg> เข้าสู่ระบบ</a>
                 <a class="nav-link" href="#alerts-section"><svg class="icon"><use href="#i-bell"/></svg> การแจ้งเตือน <span class="nav-count">3</span></a>
                 <a class="nav-link" href="#history-section"><svg class="icon"><use href="#i-clock"/></svg> ประวัติประกาศ</a>
             </nav>
@@ -59,7 +58,7 @@
 
             <div class="sidebar-bottom">
                 <div class="plan-box"><span class="plan-icon"><svg class="icon"><use href="#i-bell"/></svg></span><strong>รับรู้ก่อนใคร</strong><p>ตั้งค่าพื้นที่และเงื่อนไขแจ้งเตือนของคุณ</p><button id="configure-alerts">ตั้งค่าการแจ้งเตือน <svg class="icon"><use href="#i-arrow"/></svg></button></div>
-                <button class="profile-button"><span class="avatar">PK</span><span>พิมพ์ชนก ค.<small>สมาชิกทั่วไป</small></span><span class="profile-more">···</span></button>
+                <button class="profile-button"><span class="avatar" id="profile-avatar">ผ</span><span><span id="profile-name">ผู้เยี่ยมชม</span><small id="profile-email">กรุณาเข้าสู่ระบบ</small></span><span class="profile-more">···</span></button>
             </div>
         </aside>
 
@@ -78,7 +77,7 @@
 
             <div class="page-wrap">
                 <section class="welcome-row">
-                    <div><div class="eyebrow"><span class="live-pulse"></span> THAILAND WEATHER BRIEFING <span class="eyebrow-date">วันอาทิตย์ที่ 11 ตุลาคม 2569</span></div><h1>สวัสดี, พิมพ์ชนก <span>☀</span></h1><p>ภาพรวมสภาพอากาศและสถานการณ์สำคัญในพื้นที่ที่คุณติดตาม</p></div>
+                    <div><div class="eyebrow"><span class="live-pulse"></span> THAILAND WEATHER BRIEFING <span class="eyebrow-date">วันอาทิตย์ที่ 11 ตุลาคม 2569</span></div><h1>สวัสดี, <span id="greeting-name">ผู้เยี่ยมชม</span> <span>☀</span></h1><p>ภาพรวมสภาพอากาศและสถานการณ์สำคัญในพื้นที่ที่คุณติดตาม</p></div>
                     <button class="date-button"><svg class="icon"><use href="#i-clock"/></svg><span>อัปเดตล่าสุด<small>วันนี้ 10:24 น.</small></span><span class="fresh-dot"></span></button>
                 </section>
 
