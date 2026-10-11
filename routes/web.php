@@ -21,6 +21,8 @@ Route::get('/map', function () {
     return view('map');
 })->name('weather.map');
 
-Route::get('/service', function () {
+Route::get('/login', function () {
     return view('service');
-})->name('api.service');
+})->name('login');
+
+Route::redirect('/service', '/login');

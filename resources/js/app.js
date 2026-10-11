@@ -274,3 +274,22 @@ locationsDialog.addEventListener('close', () => {
 	document.querySelector('#location-input').value = '';
 	document.querySelectorAll('#province-options label').forEach((label) => { label.hidden = false; });
 });
+
+const sessionLogout = document.querySelector('#session-logout');
+const sessionToken = sessionStorage.getItem('weatherguard_api_token');
+if (sessionLogout) {
+	sessionLogout.hidden = !sessionToken;
+	sessionLogout.addEventListener('click', async () => {
+		try {
+			if (sessionToken) {
+				await fetch('/api/logout', {
+					method: 'POST',
+					headers: { Accept: 'application/json', Authorization: `Bearer ${sessionToken}` },
+				});
+			}
+		} finally {
+			sessionStorage.removeItem('weatherguard_api_token');
+			window.location.assign('/login');
+		}
+	});
+}

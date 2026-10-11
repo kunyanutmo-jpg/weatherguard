@@ -16,24 +16,26 @@ class ApiServiceTest extends TestCase
             'name' => 'Weather User',
             'email' => 'weather@example.test',
             'password' => 'secure-password',
-            'device_name' => 'feature-test',
         ]);
 
         $registration->assertCreated()
+            ->assertJsonMissingPath('token')
+            ->assertJsonPath('user.email', 'weather@example.test');
+
+        $login = $this->postJson('/api/login', [
+            'email' => 'weather@example.test',
+            'password' => 'secure-password',
+            'device_name' => 'feature-test-login',
+        ]);
+        $login->assertOk()
             ->assertJsonPath('token_type', 'Bearer')
             ->assertJsonPath('user.email', 'weather@example.test');
 
-        $token = $registration->json('token');
+        $token = $login->json('token');
         $this->withToken($token)->getJson('/api/user')->assertOk();
         $this->withToken($token)->postJson('/api/logout')->assertOk();
         $tokenId = (int) explode('|', $token, 2)[0];
         $this->assertDatabaseMissing('personal_access_tokens', ['id' => $tokenId]);
-
-        $this->postJson('/api/login', [
-            'email' => 'weather@example.test',
-            'password' => 'secure-password',
-            'device_name' => 'feature-test-login',
-        ])->assertOk()->assertJsonPath('user.email', 'weather@example.test');
 
         $this->postJson('/api/login', [
             'email' => 'weather@example.test',

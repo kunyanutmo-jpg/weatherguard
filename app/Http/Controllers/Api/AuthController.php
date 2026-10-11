@@ -16,18 +16,12 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'device_name' => ['sometimes', 'string', 'max:100'],
         ]);
 
-        $deviceName = $validated['device_name'] ?? 'weather-guard';
-        unset($validated['device_name']);
-
         $user = User::create($validated);
-        $token = $user->createToken($deviceName)->plainTextToken;
 
         return response()->json([
-            'token_type' => 'Bearer',
-            'token' => $token,
+            'message' => 'Account created. Please log in.',
             'user' => $user,
         ], 201);
     }

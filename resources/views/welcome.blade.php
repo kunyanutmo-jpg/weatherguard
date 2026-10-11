@@ -45,7 +45,7 @@
             <nav class="main-nav" aria-label="เมนูหลัก">
                 <a class="nav-link active" href="#overview"><svg class="icon"><use href="#i-grid"/></svg> ภาพรวม</a>
                 <a class="nav-link" href="{{ route('weather.map') }}"><svg class="icon"><use href="#i-map"/></svg> แผนที่สภาพอากาศ</a>
-                <a class="nav-link" href="{{ route('api.service') }}"><svg class="icon"><use href="#i-settings"/></svg> สมาชิกและพื้นที่ติดตาม</a>
+                <a class="nav-link" href="{{ route('login') }}"><svg class="icon"><use href="#i-settings"/></svg> เข้าสู่ระบบ</a>
                 <a class="nav-link" href="#alerts-section"><svg class="icon"><use href="#i-bell"/></svg> การแจ้งเตือน <span class="nav-count">3</span></a>
                 <a class="nav-link" href="#history-section"><svg class="icon"><use href="#i-clock"/></svg> ประวัติประกาศ</a>
             </nav>
@@ -72,6 +72,7 @@
                     <span class="topbar-divider"></span>
                     <button class="icon-button notification-button" id="notification-button" aria-label="การแจ้งเตือน"><svg class="icon"><use href="#i-bell"/></svg><i></i></button>
                     <button class="avatar top-avatar" aria-label="บัญชีผู้ใช้">PK</button>
+                    <button class="session-logout" id="session-logout" type="button" hidden>ออกจากระบบ</button>
                 </div>
             </header>
 

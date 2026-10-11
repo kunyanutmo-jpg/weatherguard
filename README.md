@@ -27,7 +27,7 @@ php artisan serve
 
 ## API
 
-ทุก endpoint ส่งและรับ JSON โดย `POST /api/register` สร้างบัญชีและออก Bearer token, `POST /api/login` ออก token สำหรับบัญชีเดิม และ `POST /api/logout` เพิกถอน token ปัจจุบัน ส่วน `GET /api/user` ใช้ตรวจสอบผู้ใช้ที่ล็อกอินอยู่
+หน้า `/login` มีฟอร์มสมัครสมาชิกและเข้าสู่ระบบ เมื่อสมัครสำเร็จจะกลับมาหน้า login เพื่อให้ผู้ใช้เข้าสู่ระบบเอง โดย `POST /api/register` สร้างบัญชีแต่ไม่ออก token; `POST /api/login` ตรวจสอบบัญชีและออก Bearer token; `POST /api/logout` เพิกถอน token ปัจจุบัน และ `GET /api/user` ใช้ตรวจสอบผู้ใช้ที่ล็อกอินอยู่
 
 จัดการพื้นที่ติดตามโดยส่ง `Authorization: Bearer <token>`:
 
@@ -36,6 +36,8 @@ php artisan serve
 - `POST /api/tracked-locations` เพิ่มพื้นที่
 - `PUT/PATCH /api/tracked-locations/{id}` แก้ข้อมูลพื้นที่
 - `DELETE /api/tracked-locations/{id}` ลบพื้นที่
+
+ไม่มีหน้าจัดการพื้นที่ติดตามแยกในเว็บ; รายการพื้นที่ยังจัดการได้ครบผ่าน API ด้านบน
 
 ตัวอย่างเพิ่มพื้นที่:
 

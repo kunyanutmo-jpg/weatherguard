@@ -90,6 +90,7 @@ a { color: inherit; text-decoration: none; }
 .notification-button { position: relative; color: #626f67; }
 .notification-button > i { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border: 1.5px solid #fbfcf8; border-radius: 50%; background: var(--orange); }
 .top-avatar { width: 29px; height: 29px; border: 0; cursor: pointer; }
+.session-logout { padding: 6px 8px; color: #5d6e62; border: 1px solid #e1e7df; border-radius: 4px; background: #fff; font-size: 9px; cursor: pointer; }.session-logout:hover { background: #f1f5ef; }
 .mobile-menu { display: none; }
 .page-wrap { width: min(1260px, 100%); margin: 0 auto; padding: 28px 35px 18px; }
 .welcome-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 21px; }

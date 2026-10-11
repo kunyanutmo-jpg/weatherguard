@@ -23,4 +23,13 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('แผนที่สภาพอากาศ');
     }
+
+    public function test_login_page_is_available_and_old_service_url_redirects(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('เข้าสู่ระบบ');
+
+        $this->get('/service')->assertRedirect('/login');
+    }
 }
