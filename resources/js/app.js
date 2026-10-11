@@ -8,6 +8,21 @@ const cities = {
 	'ชลบุรี': { lat: 13.3611, lon: 100.9847, temp: 32, condition: 'มีเมฆและฝนบางแห่ง', feels: 37, high: 34, low: 27, humidity: 76, wind: 16, rain: 55, sky: 'ฝนบางแห่ง' },
 };
 
+const bangkokTimeZone = 'Asia/Bangkok';
+const bangkokDateFormatter = new Intl.DateTimeFormat('th-TH', {
+	timeZone: bangkokTimeZone,
+	weekday: 'long',
+	day: 'numeric',
+	month: 'long',
+	year: 'numeric',
+});
+const bangkokTimeFormatter = new Intl.DateTimeFormat('th-TH', {
+	timeZone: bangkokTimeZone,
+	hour: '2-digit',
+	minute: '2-digit',
+	hourCycle: 'h23',
+});
+
 const toast = document.querySelector('#toast');
 let toastTimer;
 let activeCity = 'กรุงเทพมหานคร';
@@ -15,6 +30,54 @@ let map;
 let weatherLayer;
 let cityMarker;
 let markers = [];
+
+function getBangkokHour(date = new Date()) {
+	return Number(new Intl.DateTimeFormat('en-GB', {
+		timeZone: bangkokTimeZone,
+		hour: '2-digit',
+		hourCycle: 'h23',
+	}).format(date));
+}
+
+function getBangkokWeekdayLabels() {
+	const parts = new Intl.DateTimeFormat('en-CA', {
+		timeZone: bangkokTimeZone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	}).formatToParts(new Date());
+	const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+	const today = new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day), 12));
+
+	return Array.from({ length: 7 }, (_, index) => index === 0
+		? 'วันนี้'
+		: new Intl.DateTimeFormat('th-TH', { timeZone: bangkokTimeZone, weekday: 'short' })
+			.format(new Date(today.getTime() + index * 24 * 60 * 60 * 1000)));
+}
+
+function updateDashboardClock() {
+	const now = new Date();
+	const hour = getBangkokHour(now);
+	const time = bangkokTimeFormatter.format(now);
+	document.querySelector('#dashboard-date').textContent = bangkokDateFormatter.format(now);
+	document.querySelector('#dashboard-time').textContent = `วันนี้ ${time} น.`;
+	document.querySelector('#local-time').textContent = `ประเทศไทย · ${time} น.`;
+
+	const hourlyLabels = ['ตอนนี้', ...Array.from({ length: 5 }, (_, index) => `${String((hour + index + 1) % 24).padStart(2, '0')}:00`)];
+	if (!document.querySelector('#forecast-list').classList.contains('weekly-forecast')) {
+		document.querySelectorAll('#forecast-list .forecast-item > span').forEach((label, index) => {
+			label.textContent = hourlyLabels[index] ?? '';
+		});
+	}
+	document.querySelectorAll('.chart-times span').forEach((label, index) => {
+		label.textContent = `${String((hour + index * 4) % 24).padStart(2, '0')}:00`;
+	});
+	document.querySelectorAll('time[data-minutes-ago]').forEach((label) => {
+		const minutesAgo = Number(label.dataset.minutesAgo);
+		const eventTime = bangkokTimeFormatter.format(new Date(now.getTime() - minutesAgo * 60 * 1000));
+		label.textContent = minutesAgo >= 1440 ? `เมื่อวาน ${eventTime} น.` : `${eventTime} น.`;
+	});
+}
 
 function showToast(message) {
 	toast.textContent = message;
@@ -29,7 +92,7 @@ function selectCity(cityName) {
 
 	activeCity = cityName;
 	document.querySelector('.active-city').innerHTML = `${cityName} <svg class="icon"><use href="#i-pin"/></svg>`;
-	document.querySelector('.local-time').textContent = 'ประเทศไทย · 10:24 น.';
+	document.querySelector('.local-time').textContent = `ประเทศไทย · ${bangkokTimeFormatter.format(new Date())} น.`;
 	document.querySelector('.temperature').innerHTML = `${city.temp}<span>°</span><small>${city.condition}</small>`;
 	document.querySelector('.feels-like').innerHTML = `รู้สึกเหมือน ${city.feels}° <span>·</span> สูงสุด ${city.high}° / ต่ำสุด ${city.low}°`;
 	document.querySelectorAll('.weather-stats strong').forEach((item, index) => {
@@ -149,18 +212,22 @@ function initializeMap() {
 function renderForecast(period) {
 	const forecast = document.querySelector('#forecast-list');
 	if (period === 'week') {
+		const weekdays = getBangkokWeekdayLabels();
 		const days = [
-			['วันนี้', 'rain', 31, '65%'], ['ศ.', 'cloud', 32, '30%'], ['ส.', 'sun', 33, '15%'],
-			['อา.', 'rain', 30, '55%'], ['จ.', 'rain', 29, '70%'], ['อ.', 'cloud', 31, '35%'], ['พ.', 'sun', 32, '20%'],
+			[weekdays[0], 'rain', 31, '65%'], [weekdays[1], 'cloud', 32, '30%'], [weekdays[2], 'sun', 33, '15%'],
+			[weekdays[3], 'rain', 30, '55%'], [weekdays[4], 'rain', 29, '70%'], [weekdays[5], 'cloud', 31, '35%'], [weekdays[6], 'sun', 32, '20%'],
 		];
 		forecast.classList.add('weekly-forecast');
 		forecast.innerHTML = days.map(([day, icon, temp, chance]) => `<div class="forecast-item"><span>${day}</span><svg class="weather-mini ${icon}-mini"><use href="#i-${icon === 'cloud' ? 'cloud' : icon}"/></svg><strong>${temp}°</strong><small>${chance}</small></div>`).join('');
 	} else {
 		forecast.classList.remove('weekly-forecast');
-		forecast.innerHTML = '<div class="forecast-item"><span>ตอนนี้</span><svg class="weather-mini sun-cloud"><use href="#i-cloud"/></svg><strong>31°</strong><small>65%</small></div><div class="forecast-item"><span>12:00</span><svg class="weather-mini sun-mini"><use href="#i-sun"/></svg><strong>33°</strong><small>35%</small></div><div class="forecast-item"><span>14:00</span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>32°</strong><small>70%</small></div><div class="forecast-item"><span>16:00</span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>30°</strong><small>80%</small></div><div class="forecast-item"><span>18:00</span><svg class="weather-mini cloud-mini"><use href="#i-cloud"/></svg><strong>29°</strong><small>40%</small></div><div class="forecast-item"><span>20:00</span><svg class="weather-mini moon-mini"><use href="#i-sun"/></svg><strong>28°</strong><small>20%</small></div>';
+		forecast.innerHTML = '<div class="forecast-item"><span>ตอนนี้</span><svg class="weather-mini sun-cloud"><use href="#i-cloud"/></svg><strong>31°</strong><small>65%</small></div><div class="forecast-item"><span></span><svg class="weather-mini sun-mini"><use href="#i-sun"/></svg><strong>33°</strong><small>35%</small></div><div class="forecast-item"><span></span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>32°</strong><small>70%</small></div><div class="forecast-item"><span></span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>30°</strong><small>80%</small></div><div class="forecast-item"><span></span><svg class="weather-mini cloud-mini"><use href="#i-cloud"/></svg><strong>29°</strong><small>40%</small></div><div class="forecast-item"><span></span><svg class="weather-mini moon-mini"><use href="#i-sun"/></svg><strong>28°</strong><small>20%</small></div>';
 	}
+	updateDashboardClock();
 }
 
+updateDashboardClock();
+window.setInterval(updateDashboardClock, 60_000);
 initializeMap();
 
 document.querySelectorAll('.location-item, .tracked-city').forEach((button) => {

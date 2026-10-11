@@ -77,20 +77,20 @@
 
             <div class="page-wrap">
                 <section class="welcome-row">
-                    <div><div class="eyebrow"><span class="live-pulse"></span> THAILAND WEATHER BRIEFING <span class="eyebrow-date">วันอาทิตย์ที่ 11 ตุลาคม 2569</span></div><h1>สวัสดี, <span id="greeting-name">ผู้เยี่ยมชม</span> <span>☀</span></h1><p>ภาพรวมสภาพอากาศและสถานการณ์สำคัญในพื้นที่ที่คุณติดตาม</p></div>
-                    <button class="date-button"><svg class="icon"><use href="#i-clock"/></svg><span>อัปเดตล่าสุด<small>วันนี้ 10:24 น.</small></span><span class="fresh-dot"></span></button>
+                    <div><div class="eyebrow"><span class="live-pulse"></span> THAILAND WEATHER BRIEFING <span class="eyebrow-date" id="dashboard-date"></span></div><h1>สวัสดี, <span id="greeting-name">ผู้เยี่ยมชม</span> <span>☀</span></h1><p>ภาพรวมสภาพอากาศและสถานการณ์สำคัญในพื้นที่ที่คุณติดตาม</p></div>
+                    <div class="date-button"><svg class="icon"><use href="#i-clock"/></svg><span>เวลาปัจจุบัน<small id="dashboard-time"></small></span><span class="fresh-dot"></span></div>
                 </section>
 
                 <section class="alert-strip" aria-label="ประกาศเตือนภัย">
                     <div class="alert-symbol"><svg class="icon"><use href="#i-alert"/></svg></div>
-                    <div class="alert-copy"><div><span class="alert-kicker">ประกาศเตือนภัย</span><span class="severity-label">เฝ้าระวัง</span></div><strong>ฝนตกหนักถึงหนักมากบริเวณภาคกลาง</strong><p>กรุงเทพฯ นนทบุรี และปทุมธานี · มีผลถึง 20:00 น. วันนี้</p></div>
+                    <div class="alert-copy"><div><span class="alert-kicker">ประกาศเตือนภัย</span><span class="severity-label">เฝ้าระวัง</span></div><strong>ฝนตกหนักถึงหนักมากบริเวณภาคกลาง</strong><p>กรุงเทพฯ นนทบุรี และปทุมธานี · ข้อมูลตัวอย่าง</p></div>
                     <button class="alert-link" data-scroll="#alerts-section">ดูรายละเอียด <svg class="icon"><use href="#i-chevron"/></svg></button>
                     <span class="alert-stripe"></span>
                 </section>
 
                 <section class="overview-grid" aria-label="สภาพอากาศปัจจุบัน">
                     <article class="current-card">
-                        <div class="current-top"><div><span class="card-overline">สภาพอากาศตอนนี้</span><h2 class="active-city">กรุงเทพมหานคร <svg class="icon"><use href="#i-pin"/></svg></h2><span class="local-time">ประเทศไทย · 10:24 น.</span></div><button class="more-button" aria-label="ตัวเลือกเพิ่มเติม">···</button></div>
+                        <div class="current-top"><div><span class="card-overline">สภาพอากาศตอนนี้</span><h2 class="active-city">กรุงเทพมหานคร <svg class="icon"><use href="#i-pin"/></svg></h2><span class="local-time" id="local-time"></span></div><button class="more-button" aria-label="ตัวเลือกเพิ่มเติม">···</button></div>
                         <div class="current-weather"><div class="sun-art"><span class="sun-disc"></span><span class="cloud-shape"></span></div><div class="temperature">31<span>°</span><small>มีเมฆและฝนบางแห่ง</small></div></div>
                         <div class="feels-like">รู้สึกเหมือน 36° <span>·</span> สูงสุด 33° / ต่ำสุด 27°</div>
                         <div class="weather-stats"><div><span><svg class="icon"><use href="#i-drop"/></svg> ความชื้น</span><strong>78<small>%</small></strong><div class="stat-meter"><i style="width:78%"></i></div></div><div><span><svg class="icon"><use href="#i-wind"/></svg> ลม</span><strong>14<small> กม./ชม.</small></strong><div class="stat-meter"><i style="width:42%"></i></div></div><div><span><svg class="icon"><use href="#i-rain"/></svg> โอกาสฝน</span><strong>65<small>%</small></strong><div class="stat-meter rain-meter"><i style="width:65%"></i></div></div></div>
@@ -100,13 +100,13 @@
                         <div class="section-heading"><div><span class="card-overline">แนวโน้มอากาศ</span><h2>พยากรณ์อากาศ</h2></div><div class="segmented-control" role="group" aria-label="ช่วงเวลาพยากรณ์"><button class="forecast-tab active" data-period="today">24 ชั่วโมง</button><button class="forecast-tab" data-period="week">7 วัน</button></div></div>
                         <div class="hourly-forecast" id="forecast-list">
                             <div class="forecast-item"><span>ตอนนี้</span><svg class="weather-mini sun-cloud"><use href="#i-cloud"/></svg><strong>31°</strong><small>65%</small></div>
-                            <div class="forecast-item"><span>12:00</span><svg class="weather-mini sun-mini"><use href="#i-sun"/></svg><strong>33°</strong><small>35%</small></div>
-                            <div class="forecast-item"><span>14:00</span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>32°</strong><small>70%</small></div>
-                            <div class="forecast-item"><span>16:00</span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>30°</strong><small>80%</small></div>
-                            <div class="forecast-item"><span>18:00</span><svg class="weather-mini cloud-mini"><use href="#i-cloud"/></svg><strong>29°</strong><small>40%</small></div>
-                            <div class="forecast-item"><span>20:00</span><svg class="weather-mini moon-mini"><use href="#i-sun"/></svg><strong>28°</strong><small>20%</small></div>
+                            <div class="forecast-item"><span></span><svg class="weather-mini sun-mini"><use href="#i-sun"/></svg><strong>33°</strong><small>35%</small></div>
+                            <div class="forecast-item"><span></span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>32°</strong><small>70%</small></div>
+                            <div class="forecast-item"><span></span><svg class="weather-mini rain-mini"><use href="#i-rain"/></svg><strong>30°</strong><small>80%</small></div>
+                            <div class="forecast-item"><span></span><svg class="weather-mini cloud-mini"><use href="#i-cloud"/></svg><strong>29°</strong><small>40%</small></div>
+                            <div class="forecast-item"><span></span><svg class="weather-mini moon-mini"><use href="#i-sun"/></svg><strong>28°</strong><small>20%</small></div>
                         </div>
-                        <div class="rain-chart"><div class="chart-label">ปริมาณฝน <span>มม.</span></div><div class="chart-bars" aria-label="กราฟปริมาณฝนรายชั่วโมง"><i style="--bar:14%"></i><i style="--bar:22%"></i><i style="--bar:38%"></i><i style="--bar:76%"></i><i style="--bar:92%"></i><i style="--bar:62%"></i><i style="--bar:34%"></i><i style="--bar:18%"></i><i style="--bar:8%"></i><i style="--bar:5%"></i><i style="--bar:4%"></i><i style="--bar:3%"></i></div><div class="chart-times"><span>10:00</span><span>14:00</span><span>18:00</span><span>22:00</span></div></div>
+                        <div class="rain-chart"><div class="chart-label">ปริมาณฝน <span>มม.</span></div><div class="chart-bars" aria-label="กราฟปริมาณฝนรายชั่วโมง"><i style="--bar:14%"></i><i style="--bar:22%"></i><i style="--bar:38%"></i><i style="--bar:76%"></i><i style="--bar:92%"></i><i style="--bar:62%"></i><i style="--bar:34%"></i><i style="--bar:18%"></i><i style="--bar:8%"></i><i style="--bar:5%"></i><i style="--bar:4%"></i><i style="--bar:3%"></i></div><div class="chart-times"><span></span><span></span><span></span><span></span></div></div>
                     </article>
                 </section>
 
@@ -121,9 +121,9 @@
                     <article class="events-card" id="alerts-section">
                         <div class="section-heading"><div><span class="card-overline">ติดตามสถานการณ์</span><h2>เหตุการณ์สำคัญ <span class="event-count">3</span></h2></div><button class="text-link" data-scroll="#history-section">ดูทั้งหมด <svg class="icon"><use href="#i-chevron"/></svg></button></div>
                         <div class="event-list">
-                            <div class="event-item event-high"><span class="event-icon"><svg class="icon"><use href="#i-rain"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">ฝนตกหนัก</span><time>10:05 น.</time></div><strong>ฝนตกหนักในกรุงเทพฯ และปริมณฑล</strong><p>กรมอุตุนิยมวิทยา · คาดการณ์ฝนสะสม 60–80 มม.</p><div class="event-tags"><span>กรุงเทพฯ</span><span>นนทบุรี</span></div></div></div>
-                            <div class="event-item event-medium"><span class="event-icon"><svg class="icon"><use href="#i-wind"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">คลื่นลมแรง</span><time>08:30 น.</time></div><strong>คลื่นสูง 2–3 เมตรบริเวณอ่าวไทย</strong><p>กรมอุตุนิยมวิทยา · เรือเล็กควรงดออกจากฝั่ง</p></div></div>
-                            <div class="event-item event-low"><span class="event-icon"><svg class="icon"><use href="#i-alert"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">เฝ้าระวัง</span><time>เมื่อวาน</time></div><strong>ระดับน้ำเจ้าพระยาเพิ่มสูงขึ้น</strong><p>กรมชลประทาน · ติดตามระดับน้ำอย่างใกล้ชิด</p></div></div>
+                            <div class="event-item event-high"><span class="event-icon"><svg class="icon"><use href="#i-rain"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">ฝนตกหนัก</span><time data-minutes-ago="15"></time></div><strong>ฝนตกหนักในกรุงเทพฯ และปริมณฑล</strong><p>กรมอุตุนิยมวิทยา · คาดการณ์ฝนสะสม 60–80 มม.</p><div class="event-tags"><span>กรุงเทพฯ</span><span>นนทบุรี</span></div></div></div>
+                            <div class="event-item event-medium"><span class="event-icon"><svg class="icon"><use href="#i-wind"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">คลื่นลมแรง</span><time data-minutes-ago="90"></time></div><strong>คลื่นสูง 2–3 เมตรบริเวณอ่าวไทย</strong><p>กรมอุตุนิยมวิทยา · เรือเล็กควรงดออกจากฝั่ง</p></div></div>
+                            <div class="event-item event-low"><span class="event-icon"><svg class="icon"><use href="#i-alert"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">เฝ้าระวัง</span><time data-minutes-ago="1440"></time></div><strong>ระดับน้ำเจ้าพระยาเพิ่มสูงขึ้น</strong><p>กรมชลประทาน · ติดตามระดับน้ำอย่างใกล้ชิด</p></div></div>
                         </div>
                         <div class="official-note"><svg class="icon"><use href="#i-alert"/></svg><span>ข้อมูลประกาศจากหน่วยงานที่เกี่ยวข้อง</span><button aria-label="ข้อมูลเพิ่มเติม">i</button></div>
                     </article>
