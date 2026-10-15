@@ -18,6 +18,11 @@ class User extends Authenticatable
         return $this->hasMany(TrackedLocation::class);
     }
 
+    public function hazardAlerts(): HasMany
+    {
+        return $this->hasMany(HazardAlert::class);
+    }
+
     /**
      * The attributes that are mass assignable.
      *

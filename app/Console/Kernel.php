@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('hazards:sync-earthquakes')->everyFifteenMinutes()->withoutOverlapping();
+        $schedule->command('hazards:sync-flood-storms')->everyFifteenMinutes()->withoutOverlapping();
     }
 
     /**

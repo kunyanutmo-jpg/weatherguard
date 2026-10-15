@@ -41,7 +41,12 @@
                 <span class="brand-name">weather<span>guard</span><small>WEATHER INTELLIGENCE</small></span>
             </a>
 
-            <div class="workspace-label">WORKSPACE <button class="workspace-switch" aria-label="เปลี่ยน workspace">ทีมของฉัน <span>⌄</span></button></div>
+            <div class="workspace-label">ขอบเขตข้อมูล</div>
+            <div class="workspace-scope" aria-label="ข้อมูลสภาพอากาศประเทศไทย ครอบคลุม 77 จังหวัด">
+                <svg class="icon" aria-hidden="true"><use href="#i-map"/></svg>
+                <span><strong>ประเทศไทย</strong><small>ครอบคลุม 77 จังหวัด</small></span>
+                <i aria-hidden="true"></i>
+            </div>
             <nav class="main-nav" aria-label="เมนูหลัก">
                 <a class="nav-link active" href="#overview"><svg class="icon"><use href="#i-grid"/></svg> ภาพรวม</a>
                 <a class="nav-link" href="{{ route('weather.map') }}"><svg class="icon"><use href="#i-map"/></svg> แผนที่สภาพอากาศ</a>
@@ -49,16 +54,18 @@
                 <a class="nav-link" href="#history-section"><svg class="icon"><use href="#i-clock"/></svg> ประวัติประกาศ</a>
             </nav>
 
-            <div class="sidebar-heading">พื้นที่ที่ติดตาม <button class="icon-button sidebar-add" id="open-locations" aria-label="เพิ่มพื้นที่"><svg class="icon"><use href="#i-plus"/></svg></button></div>
+            <div class="sidebar-heading">พื้นที่ที่ติดตาม <a class="icon-button sidebar-add" id="open-locations" href="{{ route('locations.index') }}" aria-label="เพิ่มพื้นที่"><svg class="icon"><use href="#i-plus"/></svg></a></div>
             <div class="location-list" id="location-list">
-                <button class="location-item selected" data-city="กรุงเทพมหานคร" data-lat="13.7563" data-lon="100.5018"><span class="location-dot dot-orange"></span><span>กรุงเทพมหานคร<small>ฝนฟ้าคะนอง</small></span><b>31°</b></button>
-                <button class="location-item" data-city="เชียงใหม่" data-lat="18.7883" data-lon="98.9853"><span class="location-dot dot-blue"></span><span>เชียงใหม่<small>มีเมฆบางส่วน</small></span><b>29°</b></button>
-                <button class="location-item" data-city="ภูเก็ต" data-lat="7.8804" data-lon="98.3923"><span class="location-dot dot-green"></span><span>ภูเก็ต<small>แดดออก</small></span><b>33°</b></button>
+                <div class="location-list-empty">กำลังโหลดพื้นที่ติดตาม...</div>
             </div>
 
             <div class="sidebar-bottom">
                 <div class="plan-box"><span class="plan-icon"><svg class="icon"><use href="#i-bell"/></svg></span><strong>รับรู้ก่อนใคร</strong><p>ตั้งค่าพื้นที่และเงื่อนไขแจ้งเตือนของคุณ</p><button id="configure-alerts">ตั้งค่าการแจ้งเตือน <svg class="icon"><use href="#i-arrow"/></svg></button></div>
-                <button class="profile-button"><span class="avatar" id="profile-avatar">ผ</span><span><span id="profile-name">ผู้เยี่ยมชม</span><small id="profile-email">กรุณาเข้าสู่ระบบ</small></span><span class="profile-more">···</span></button>
+                <div class="profile-control">
+                    <button class="profile-button" type="button"><span class="avatar" id="profile-avatar">ผ</span><span><span id="profile-name">ผู้เยี่ยมชม</span><small id="profile-email">กรุณาเข้าสู่ระบบ</small></span></button>
+                    <button class="profile-more" id="profile-menu-button" type="button" aria-label="เมนูผู้ใช้" aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu">···</button>
+                    <div class="profile-menu" id="profile-menu" role="menu" hidden><button id="open-hazard-simulation" type="button" role="menuitem">จำลองสถานการณ์</button></div>
+                </div>
             </div>
         </aside>
 
@@ -71,6 +78,7 @@
                     <span class="topbar-divider"></span>
                     <button class="icon-button notification-button" id="notification-button" aria-label="การแจ้งเตือน"><svg class="icon"><use href="#i-bell"/></svg><i></i></button>
                     <button class="avatar top-avatar" aria-label="บัญชีผู้ใช้">PK</button>
+                    <a class="session-login" id="session-login" href="{{ route('login') }}">เข้าสู่ระบบ / สมัครสมาชิก</a>
                     <button class="session-logout" id="session-logout" type="button" hidden>ออกจากระบบ</button>
                 </div>
             </header>
@@ -90,7 +98,7 @@
 
                 <section class="overview-grid" aria-label="สภาพอากาศปัจจุบัน">
                     <article class="current-card">
-                        <div class="current-top"><div><span class="card-overline">สภาพอากาศตอนนี้</span><h2 class="active-city">กรุงเทพมหานคร <svg class="icon"><use href="#i-pin"/></svg></h2><span class="local-time" id="local-time"></span></div><button class="more-button" aria-label="ตัวเลือกเพิ่มเติม">···</button></div>
+                        <div class="current-top"><div><span class="card-overline">สภาพอากาศตอนนี้</span><h2 class="active-city">กรุงเทพมหานคร <svg class="icon"><use href="#i-pin"/></svg></h2><span class="local-time" id="local-time"></span></div><button class="more-button" type="button" aria-label="ตัวเลือกเพิ่มเติม">···</button></div>
                         <div class="current-weather"><div class="sun-art"><span class="sun-disc"></span><span class="cloud-shape"></span></div><div class="temperature">31<span>°</span><small>มีเมฆและฝนบางแห่ง</small></div></div>
                         <div class="feels-like">รู้สึกเหมือน 36° <span>·</span> สูงสุด 33° / ต่ำสุด 27°</div>
                         <div class="weather-stats"><div><span><svg class="icon"><use href="#i-drop"/></svg> ความชื้น</span><strong>78<small>%</small></strong><div class="stat-meter"><i style="width:78%"></i></div></div><div><span><svg class="icon"><use href="#i-wind"/></svg> ลม</span><strong>14<small> กม./ชม.</small></strong><div class="stat-meter"><i style="width:42%"></i></div></div><div><span><svg class="icon"><use href="#i-rain"/></svg> โอกาสฝน</span><strong>65<small>%</small></strong><div class="stat-meter rain-meter"><i style="width:65%"></i></div></div></div>
@@ -119,7 +127,7 @@
                     </article>
 
                     <article class="events-card" id="alerts-section">
-                        <div class="section-heading"><div><span class="card-overline">ติดตามสถานการณ์</span><h2>เหตุการณ์สำคัญ <span class="event-count">3</span></h2></div><button class="text-link" data-scroll="#history-section">ดูทั้งหมด <svg class="icon"><use href="#i-chevron"/></svg></button></div>
+                        <div class="section-heading"><div><span class="card-overline">ติดตามสถานการณ์</span><h2>เหตุการณ์สำคัญ <span class="event-count">3</span></h2></div><div class="event-actions"><button class="text-link" id="mark-all-alerts" type="button">อ่านทั้งหมด</button></div></div>
                         <div class="event-list">
                             <div class="event-item event-high"><span class="event-icon"><svg class="icon"><use href="#i-rain"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">ฝนตกหนัก</span><time data-minutes-ago="15"></time></div><strong>ฝนตกหนักในกรุงเทพฯ และปริมณฑล</strong><p>กรมอุตุนิยมวิทยา · คาดการณ์ฝนสะสม 60–80 มม.</p><div class="event-tags"><span>กรุงเทพฯ</span><span>นนทบุรี</span></div></div></div>
                             <div class="event-item event-medium"><span class="event-icon"><svg class="icon"><use href="#i-wind"/></svg></span><div class="event-content"><div class="event-meta"><span class="event-type">คลื่นลมแรง</span><time data-minutes-ago="90"></time></div><strong>คลื่นสูง 2–3 เมตรบริเวณอ่าวไทย</strong><p>กรมอุตุนิยมวิทยา · เรือเล็กควรงดออกจากฝั่ง</p></div></div>
@@ -129,9 +137,20 @@
                     </article>
                 </section>
 
+                <section class="dashboard-border-section" aria-labelledby="dashboard-border-title">
+                    <div class="dashboard-border-heading">
+                        <div><span class="card-overline">BORDER OUTLOOK · 6 HRS</span><h2 id="dashboard-border-title">ประเทศเพื่อนบ้าน</h2></div>
+                        <span class="border-weather-status" id="dashboard-border-weather-status">กำลังโหลด</span>
+                    </div>
+                    <p class="dashboard-border-disclaimer">ประเมินแนวโน้มฝนใกล้ชายแดน ไม่ใช่ประกาศเตือนภัยทางการ</p>
+                    <div class="dashboard-border-list" id="dashboard-border-weather-list" aria-live="polite">
+                        <div class="border-weather-loading">กำลังตรวจพยากรณ์บริเวณชายแดน</div>
+                    </div>
+                </section>
+
                 <section class="bottom-grid" id="history-section">
-                    <article class="tracked-card"><div class="section-heading"><div><span class="card-overline">พื้นที่ของคุณ</span><h2>สภาพอากาศพื้นที่ติดตาม</h2></div><button class="text-link" id="manage-locations">จัดการพื้นที่ <svg class="icon"><use href="#i-chevron"/></svg></button></div><div class="tracked-weather" id="tracked-weather"><button class="tracked-city active" data-city="กรุงเทพมหานคร"><span class="tracked-icon tracked-rain"><svg class="icon"><use href="#i-rain"/></svg></span><span><strong>กรุงเทพมหานคร</strong><small>ฝนฟ้าคะนอง</small></span><b>31°</b><small class="tracked-range">27° / 33°</small></button><button class="tracked-city" data-city="เชียงใหม่"><span class="tracked-icon tracked-cloud"><svg class="icon"><use href="#i-cloud"/></svg></span><span><strong>เชียงใหม่</strong><small>มีเมฆบางส่วน</small></span><b>29°</b><small class="tracked-range">22° / 31°</small></button><button class="tracked-city" data-city="ภูเก็ต"><span class="tracked-icon tracked-sun"><svg class="icon"><use href="#i-sun"/></svg></span><span><strong>ภูเก็ต</strong><small>แดดออก</small></span><b>33°</b><small class="tracked-range">26° / 34°</small></button></div></article>
-                    <article class="subscription-card"><div class="subscription-icon"><svg class="icon"><use href="#i-bell"/></svg></div><div><span class="card-overline">ไม่พลาดทุกสถานการณ์</span><h2>การแจ้งเตือนของฉัน</h2><p>รับข่าวสารสภาพอากาศในพื้นที่ที่คุณสนใจ</p></div><button class="toggle-switch is-on" id="notification-toggle" role="switch" aria-checked="true" aria-label="เปิดการแจ้งเตือน"><span></span></button><div class="subscription-footer"><span><i class="fresh-dot"></i> แจ้งเตือนผ่านเว็บไซต์</span><button id="notification-settings">ตั้งค่า <svg class="icon"><use href="#i-arrow"/></svg></button></div></article>
+                    <article class="tracked-card"><div class="section-heading"><div><span class="card-overline">พื้นที่ของคุณ</span><h2>สภาพอากาศพื้นที่ติดตาม</h2></div><a class="text-link" id="manage-locations" href="{{ route('locations.index') }}">จัดการพื้นที่ <svg class="icon"><use href="#i-chevron"/></svg></a></div><div class="tracked-weather" id="tracked-weather"><button class="tracked-city active" data-city="กรุงเทพมหานคร"><span class="tracked-icon tracked-rain"><svg class="icon"><use href="#i-rain"/></svg></span><span><strong>กรุงเทพมหานคร</strong><small>ฝนฟ้าคะนอง</small></span><b>31°</b><small class="tracked-range">27° / 33°</small></button><button class="tracked-city" data-city="เชียงใหม่"><span class="tracked-icon tracked-cloud"><svg class="icon"><use href="#i-cloud"/></svg></span><span><strong>เชียงใหม่</strong><small>มีเมฆบางส่วน</small></span><b>29°</b><small class="tracked-range">22° / 31°</small></button><button class="tracked-city" data-city="ภูเก็ต"><span class="tracked-icon tracked-sun"><svg class="icon"><use href="#i-sun"/></svg></span><span><strong>ภูเก็ต</strong><small>แดดออก</small></span><b>33°</b><small class="tracked-range">26° / 34°</small></button></div></article>
+                    <article class="subscription-card"><div class="subscription-icon"><svg class="icon"><use href="#i-bell"/></svg></div><div><span class="card-overline">ไม่พลาดทุกสถานการณ์</span><h2>การแจ้งเตือนของฉัน</h2><p>รับข่าวสารสภาพอากาศในพื้นที่ที่คุณติดตาม</p></div><button class="toggle-switch is-on" id="notification-toggle" role="switch" aria-checked="true" aria-label="เปิดการแจ้งเตือน"><span></span></button><div class="subscription-footer"><span><i class="fresh-dot"></i><span id="browser-notification-status">แจ้งเตือนในหน้านี้</span></span><button class="browser-notification-setup" id="browser-notification-setup" type="button">เปิดเสียงและ popup</button><button id="notification-settings">ตั้งค่า <svg class="icon"><use href="#i-arrow"/></svg></button></div></article>
                 </section>
 
                 <footer class="page-footer"><span>WeatherGuard <b>·</b> ติดตามอากาศอย่างเข้าใจ พร้อมรับมือทุกสถานการณ์</span><span>ข้อมูลตัวอย่างสำหรับสาธิตระบบ <b>·</b> ตรวจสอบประกาศจากหน่วยงานทางการ</span></footer>
@@ -139,17 +158,20 @@
         </main>
     </div>
 
-    <dialog class="locations-dialog" id="locations-dialog">
-        <form method="dialog" id="locations-form">
-            <div class="dialog-heading"><div><span class="card-overline">PERSONALIZE YOUR DASHBOARD</span><h2>จัดการพื้นที่ติดตาม</h2></div><button class="icon-button" value="cancel" aria-label="ปิด"><svg class="icon"><use href="#i-close"/></svg></button></div>
-            <p>เลือกจังหวัดที่ต้องการดูสภาพอากาศและรับการแจ้งเตือน</p>
-            <label class="dialog-search"><svg class="icon"><use href="#i-search"/></svg><input id="location-input" type="search" placeholder="ค้นหาจังหวัด เช่น ขอนแก่น"></label>
-            <div class="province-options" id="province-options"><label><input type="checkbox" value="กรุงเทพมหานคร" checked><span>กรุงเทพมหานคร</span><small>ภาคกลาง</small></label><label><input type="checkbox" value="เชียงใหม่" checked><span>เชียงใหม่</span><small>ภาคเหนือ</small></label><label><input type="checkbox" value="ภูเก็ต" checked><span>ภูเก็ต</span><small>ภาคใต้</small></label><label><input type="checkbox" value="ขอนแก่น"><span>ขอนแก่น</span><small>ภาคตะวันออกเฉียงเหนือ</small></label><label><input type="checkbox" value="ชลบุรี"><span>ชลบุรี</span><small>ภาคตะวันออก</small></label></div>
-            <div class="dialog-actions"><button class="cancel-button" value="cancel">ยกเลิก</button><button class="save-button" id="save-locations" value="default">บันทึกพื้นที่</button></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog class="hazard-simulation-dialog" id="hazard-simulation-dialog" aria-labelledby="hazard-simulation-title">
+        <div class="simulation-dialog-header">
+            <div><span class="card-overline">SCENARIO TEST</span><h2 id="hazard-simulation-title">จำลองสถานการณ์ภัยพิบัติ</h2></div>
+            <button class="icon-button" id="close-hazard-simulation" type="button" aria-label="ปิดหน้าต่าง"><svg class="icon"><use href="#i-close"/></svg></button>
+        </div>
+        <form class="hazard-simulator" id="hazard-simulator">
+            <label>ประเภทภัย<select id="simulation-hazard-type"><option value="flood">น้ำท่วม</option><option value="storm">พายุ</option><option value="earthquake">แผ่นดินไหว</option></select></label>
+            <label>พื้นที่รับแจ้ง<select id="simulation-location"><option value="">กำลังเตรียมพื้นที่</option></select></label>
+            <label>ระดับเตือน<select id="simulation-severity"><option value="watch">เฝ้าระวัง</option><option value="high">สูง</option><option value="critical">วิกฤต</option></select></label>
+            <div class="simulation-actions"><button class="simulation-run" type="submit">ส่งแจ้งเตือนจำลอง</button><button class="simulation-clear" id="clear-hazard-simulation" type="button" hidden>ล้างผลจำลอง</button></div>
+            <p class="simulation-note">แสดงผลในหน้านี้เท่านั้น ไม่บันทึกฐานข้อมูลและไม่ส่งแจ้งเตือนจริง</p>
         </form>
     </dialog>
-
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </body>
 </html>

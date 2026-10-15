@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\HazardController;
+use App\Http\Controllers\Api\HazardAlertController;
 use App\Http\Controllers\Api\TrackedLocationController;
 
 /*
@@ -26,4 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('tracked-locations', TrackedLocationController::class);
+    Route::get('/hazards', [HazardController::class, 'events']);
+    Route::get('/risk-areas', [HazardController::class, 'riskAreas']);
+    Route::get('/alerts', [HazardAlertController::class, 'index']);
+    Route::patch('/alerts/{alert}/read', [HazardAlertController::class, 'markRead']);
+    Route::post('/alerts/read-all', [HazardAlertController::class, 'markAllRead']);
 });

@@ -7,6 +7,20 @@ const authError = document.querySelector('#auth-error');
 const authNotice = document.querySelector('#auth-notice');
 let authMode = 'login';
 
+function safeNextPath() {
+	const next = new URLSearchParams(window.location.search).get('next');
+	if (!next) return '/';
+
+	try {
+		const target = new URL(next, window.location.origin);
+		return target.origin === window.location.origin
+			? `${target.pathname}${target.search}${target.hash}`
+			: '/';
+	} catch {
+		return '/';
+	}
+}
+
 function setAuthMode(mode) {
 	authMode = mode;
 	const registering = mode === 'register';
@@ -18,6 +32,7 @@ function setAuthMode(mode) {
 	document.querySelector('#auth-submit').textContent = registering ? 'สร้างบัญชี' : 'เข้าสู่ระบบ';
 	document.querySelector('#auth-switch-copy').textContent = registering ? 'มีบัญชีอยู่แล้ว?' : 'ยังไม่มีบัญชี?';
 	document.querySelector('#auth-mode-toggle').textContent = registering ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+	document.querySelector('#auth-forgot-link').hidden = registering;
 	document.querySelector('#auth-form [name="password"]').autocomplete = registering ? 'new-password' : 'current-password';
 	authError.hidden = true;
 }
@@ -61,7 +76,7 @@ authForm.addEventListener('submit', async (event) => {
 		}
 
 		sessionStorage.setItem(tokenKey, result.token);
-		window.location.assign('/');
+		window.location.assign(safeNextPath());
 	} catch (error) {
 		authError.textContent = error.message;
 		authError.hidden = false;
@@ -74,7 +89,9 @@ const existingToken = sessionStorage.getItem(tokenKey);
 if (existingToken) {
 	fetch('/api/user', { headers: { Accept: 'application/json', Authorization: `Bearer ${existingToken}` } })
 		.then((response) => {
-			if (response.ok) window.location.replace('/');
+			if (response.ok) {
+				window.location.replace(safeNextPath());
+			}
 			else sessionStorage.removeItem(tokenKey);
 		})
 		.catch(() => sessionStorage.removeItem(tokenKey));

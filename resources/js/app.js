@@ -1,4 +1,6 @@
 import './bootstrap';
+import './dashboard-api';
+import { loadBorderWeather } from './border-weather';
 
 const cities = {
 	'กรุงเทพมหานคร': { lat: 13.7563, lon: 100.5018, temp: 31, condition: 'มีเมฆและฝนบางแห่ง', feels: 36, high: 33, low: 27, humidity: 78, wind: 14, rain: 65, sky: 'ฝนฟ้าคะนอง' },
@@ -26,6 +28,7 @@ const bangkokTimeFormatter = new Intl.DateTimeFormat('th-TH', {
 const toast = document.querySelector('#toast');
 let toastTimer;
 let activeCity = 'กรุงเทพมหานคร';
+let activeTrackedLocation;
 let map;
 let weatherLayer;
 let cityMarker;
@@ -91,6 +94,7 @@ function selectCity(cityName) {
 	if (!city) return;
 
 	activeCity = cityName;
+	activeTrackedLocation = null;
 	document.querySelector('.active-city').innerHTML = `${cityName} <svg class="icon"><use href="#i-pin"/></svg>`;
 	document.querySelector('.local-time').textContent = `ประเทศไทย · ${bangkokTimeFormatter.format(new Date())} น.`;
 	document.querySelector('.temperature').innerHTML = `${city.temp}<span>°</span><small>${city.condition}</small>`;
@@ -113,33 +117,65 @@ function selectCity(cityName) {
 	}
 }
 
-function renderTrackedCities(cityNames) {
-	const list = document.querySelector('#location-list');
-	const weatherList = document.querySelector('#tracked-weather');
-	const iconFor = (city) => city.rain > 50 ? 'rain' : city.rain > 20 ? 'cloud' : 'sun';
-	const iconLabel = { rain: 'ฝน', cloud: 'เมฆ', sun: 'แดด' };
+function updateTrackedLocationDashboard(location, current) {
+	activeCity = location.name;
+	activeTrackedLocation = { location, current };
+	const activeCityTitle = document.querySelector('.active-city');
+	const pinIcon = activeCityTitle.querySelector('.icon')?.cloneNode(true);
+	activeCityTitle.replaceChildren(document.createTextNode(location.name), ...(pinIcon ? [pinIcon] : []));
+	document.querySelector('.local-time').textContent = `ประเทศไทย · ${bangkokTimeFormatter.format(new Date())} น.`;
 
-	list.innerHTML = '';
-	weatherList.innerHTML = '';
+	const temperatureValue = Number.isFinite(current?.temperature_2m) ? Math.round(current.temperature_2m) : null;
+	const feelsLikeValue = Number.isFinite(current?.apparent_temperature) ? Math.round(current.apparent_temperature) : null;
+	const condition = weatherConditionLabel(current?.weather_code);
+	const temperature = document.querySelector('.temperature');
+	const degrees = document.createElement('span');
+	degrees.textContent = '°';
+	const conditionText = document.createElement('small');
+	conditionText.textContent = condition;
+	temperature.replaceChildren(document.createTextNode(temperatureValue === null ? '--' : String(temperatureValue)), degrees, conditionText);
+	document.querySelector('.feels-like').textContent = feelsLikeValue === null
+		? 'ข้อมูลความรู้สึกเหมือนยังไม่พร้อม'
+		: `รู้สึกเหมือน ${feelsLikeValue}° · สภาพอากาศปัจจุบัน`;
 
-	cityNames.forEach((name) => {
-		const city = cities[name];
-		if (!city) return;
-		const icon = iconFor(city);
-		const sidebarButton = document.createElement('button');
-		sidebarButton.className = `location-item${name === activeCity ? ' selected' : ''}`;
-		sidebarButton.dataset.city = name;
-		sidebarButton.innerHTML = `<span class="location-dot ${icon === 'rain' ? 'dot-orange' : icon === 'cloud' ? 'dot-blue' : 'dot-green'}"></span><span>${name}<small>${city.sky}</small></span><b>${city.temp}°</b>`;
-		sidebarButton.addEventListener('click', () => selectCity(name));
-		list.append(sidebarButton);
-
-		const trackedButton = document.createElement('button');
-		trackedButton.className = `tracked-city${name === activeCity ? ' active' : ''}`;
-		trackedButton.dataset.city = name;
-		trackedButton.innerHTML = `<span class="tracked-icon tracked-${icon}"><svg class="icon"><use href="#i-${icon}"/></svg></span><span><strong>${name}</strong><small>${city.sky}</small></span><b>${city.temp}°</b><small class="tracked-range">${city.low}° / ${city.high}°</small>`;
-		trackedButton.addEventListener('click', () => selectCity(name));
-		weatherList.append(trackedButton);
+	const humidity = Number.isFinite(current?.relative_humidity_2m) ? Math.round(current.relative_humidity_2m) : null;
+	const wind = Number.isFinite(current?.wind_speed_10m) ? Math.round(current.wind_speed_10m) : null;
+	const rainChance = Number.isFinite(current?.precipitation_probability) ? Math.round(current.precipitation_probability) : null;
+	const values = [
+		{ value: humidity, suffix: '%', width: humidity },
+		{ value: wind, suffix: ' กม./ชม.', width: wind === null ? null : Math.min(100, wind * 3) },
+		{ value: rainChance, suffix: '%', width: rainChance },
+	];
+	document.querySelectorAll('.weather-stats > div').forEach((stat, index) => {
+		const metric = values[index];
+		stat.querySelector('strong').innerHTML = `${metric.value === null ? '--' : metric.value}<small>${metric.value === null ? '' : metric.suffix}</small>`;
+		stat.querySelector('.stat-meter i').style.width = `${metric.width ?? 0}%`;
 	});
+
+	if (map && cityMarker) {
+		const position = [Number(location.latitude), Number(location.longitude)];
+		map.flyTo(position, Math.max(map.getZoom(), 8), { duration: 0.8 });
+		cityMarker.setLatLng(position);
+		cityMarker.setPopupContent(`<strong>${escapeText(location.name)}</strong><br>${temperatureValue === null ? '--' : `${temperatureValue}°`} · ${escapeText(condition)}<br><small>${escapeText(location.province)}</small>`);
+		cityMarker.openPopup();
+	}
+}
+
+function weatherConditionLabel(code) {
+	if (!Number.isFinite(Number(code))) return 'ข้อมูลสภาพอากาศไม่พร้อม';
+	const weatherCode = Number(code);
+	if (weatherCode === 0) return 'ท้องฟ้าแจ่มใส';
+	if ([1, 2, 3].includes(weatherCode)) return 'มีเมฆบางส่วน';
+	if ([45, 48].includes(weatherCode)) return 'มีหมอก';
+	if ([51, 53, 55, 56, 57].includes(weatherCode)) return 'ฝนละออง';
+	if ([61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) return 'มีฝน';
+	if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) return 'มีหิมะ';
+	if ([95, 96, 99].includes(weatherCode)) return 'ฝนฟ้าคะนอง';
+	return 'สภาพอากาศแปรปรวน';
+}
+
+function escapeText(value) {
+	return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 }
 
 function updateMapLayer(layerName) {
@@ -229,6 +265,13 @@ function renderForecast(period) {
 updateDashboardClock();
 window.setInterval(updateDashboardClock, 60_000);
 initializeMap();
+window.addEventListener('weatherguard:tracked-location-selected', (event) => {
+	updateTrackedLocationDashboard(event.detail.location, event.detail.current);
+});
+loadBorderWeather({
+	list: document.querySelector('#dashboard-border-weather-list'),
+	status: document.querySelector('#dashboard-border-weather-status'),
+});
 
 document.querySelectorAll('.location-item, .tracked-city').forEach((button) => {
 	button.addEventListener('click', () => selectCity(button.dataset.city));
@@ -281,47 +324,22 @@ document.addEventListener('keydown', (event) => {
 	}
 });
 
-const locationsDialog = document.querySelector('#locations-dialog');
-const openLocations = () => locationsDialog.showModal();
-document.querySelector('#open-locations').addEventListener('click', openLocations);
-document.querySelector('#manage-locations').addEventListener('click', openLocations);
-document.querySelector('#location-input').addEventListener('input', (event) => {
-	const query = event.target.value.trim();
-	document.querySelectorAll('#province-options label').forEach((label) => {
-		label.hidden = query !== '' && !label.textContent.includes(query);
-	});
-});
-document.querySelector('#locations-form').addEventListener('submit', (event) => {
-	if (event.submitter?.id !== 'save-locations') return;
-	const selectedCities = [...document.querySelectorAll('#province-options input:checked')].map((input) => input.value);
-	if (!selectedCities.length) {
-		event.preventDefault();
-		showToast('เลือกอย่างน้อยหนึ่งพื้นที่เพื่อติดตาม');
-		return;
-	}
-	renderTrackedCities(selectedCities);
-	if (!selectedCities.includes(activeCity)) selectCity(selectedCities[0]);
-	showToast(`บันทึก ${selectedCities.length} พื้นที่ติดตามแล้ว`);
-});
-
 document.querySelectorAll('[data-scroll]').forEach((button) => {
 	button.addEventListener('click', () => document.querySelector(button.dataset.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 });
+const openLocations = () => window.location.assign('/locations');
 document.querySelector('#configure-alerts').addEventListener('click', openLocations);
 document.querySelector('#notification-settings').addEventListener('click', openLocations);
-document.querySelector('#notification-button').addEventListener('click', () => showToast('คุณมีประกาศเฝ้าระวัง 3 รายการ'));
-document.querySelector('#map-locate').addEventListener('click', () => selectCity(activeCity));
+document.querySelector('#notification-button').addEventListener('click', () => document.querySelector('#alerts-section').scrollIntoView({ behavior: 'smooth', block: 'center' }));
+document.querySelector('#map-locate').addEventListener('click', () => {
+	if (activeTrackedLocation) {
+		updateTrackedLocationDashboard(activeTrackedLocation.location, activeTrackedLocation.current);
+		return;
+	}
+	selectCity(activeCity);
+});
 document.querySelector('#map-expand').addEventListener('click', () => {
 	window.location.assign('/map');
-});
-
-const notificationToggle = document.querySelector('#notification-toggle');
-notificationToggle.addEventListener('click', () => {
-	const enabled = notificationToggle.getAttribute('aria-checked') !== 'true';
-	notificationToggle.setAttribute('aria-checked', String(enabled));
-	notificationToggle.classList.toggle('is-on', enabled);
-	notificationToggle.setAttribute('aria-label', enabled ? 'เปิดการแจ้งเตือน' : 'ปิดการแจ้งเตือน');
-	showToast(enabled ? 'เปิดการแจ้งเตือนบนเว็บไซต์แล้ว' : 'ปิดการแจ้งเตือนบนเว็บไซต์แล้ว');
 });
 
 document.querySelectorAll('.nav-link').forEach((link) => {
@@ -337,12 +355,8 @@ document.addEventListener('click', (event) => {
 	}
 });
 
-locationsDialog.addEventListener('close', () => {
-	document.querySelector('#location-input').value = '';
-	document.querySelectorAll('#province-options label').forEach((label) => { label.hidden = false; });
-});
-
 const sessionLogout = document.querySelector('#session-logout');
+const sessionLogin = document.querySelector('#session-login');
 const sessionToken = sessionStorage.getItem('weatherguard_api_token');
 
 function setUserIdentity(name, email) {
@@ -362,10 +376,12 @@ async function loadUserIdentity() {
 		if (!response.ok) {
 			sessionStorage.removeItem('weatherguard_api_token');
 			sessionLogout.hidden = true;
+			sessionLogin.hidden = false;
 			return;
 		}
 		const user = await response.json();
 		setUserIdentity(user.name, user.email);
+		window.dispatchEvent(new CustomEvent('weatherguard:user-ready', { detail: user }));
 	} catch {
 		setUserIdentity('', '');
 	}
@@ -373,6 +389,7 @@ async function loadUserIdentity() {
 
 if (sessionLogout) {
 	sessionLogout.hidden = !sessionToken;
+	sessionLogin.hidden = Boolean(sessionToken);
 	sessionLogout.addEventListener('click', async () => {
 		try {
 			if (sessionToken) {

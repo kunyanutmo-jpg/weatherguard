@@ -1,9 +1,11 @@
 import './bootstrap';
 import '../css/map.css';
+import { loadBorderWeather } from './border-weather';
 
 const apiRoot = 'https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest';
 const weatherRoot = 'https://api.open-meteo.com/v1/forecast';
 const geocodingRoot = 'https://geocoding-api.open-meteo.com/v1/search';
+const reverseGeocodingRoot = 'https://nominatim.openstreetmap.org/reverse';
 const provinceCenterFallbacks = {
 	'Nong Bua Lam Phu': { lat: 17.20406, lon: 102.44068 },
 	'Phangnga': { lat: 8.45091, lon: 98.5985 },
@@ -25,6 +27,8 @@ let selectedProvince;
 let selectedDistrict;
 let activeLayer = 'temperature';
 let provinceCoordinates = [];
+let mapSelectionMarker;
+let mapSelectionPosition;
 
 function escapeHtml(value) {
 	return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
@@ -137,6 +141,72 @@ function makeDistrictName(district) {
 
 function makeProvinceName(province) {
 	return province.name.th;
+}
+
+function normalizePlaceName(value) {
+	return String(value ?? '')
+		.toLocaleLowerCase('th')
+		.replace(/^(จังหวัด|จ\.?|chang wat|province of|province)\s*/i, '')
+		.replace(/\s+/g, '');
+}
+
+async function reverseGeocodeProvince(lat, lon) {
+	const query = new URLSearchParams({
+		format: 'jsonv2',
+		lat: String(lat),
+		lon: String(lon),
+		zoom: '10',
+		addressdetails: '1',
+		'accept-language': 'th',
+	});
+	try {
+		const response = await fetch(`${reverseGeocodingRoot}?${query}`, { signal: AbortSignal.timeout(8000) });
+		if (!response.ok) return null;
+		const address = (await response.json()).address ?? {};
+		const addressNames = [address.province, address.state, address.region, address.city, address.state_district]
+			.map(normalizePlaceName)
+			.filter(Boolean);
+		return provinces.find((province) => {
+			const names = [normalizePlaceName(province.name.th), normalizePlaceName(province.name.en)];
+			return names.some((name) => addressNames.includes(name));
+		}) ?? null;
+	} catch {
+		return null;
+	}
+}
+
+function findNearestProvince(lat, lon) {
+	const latitudeScale = Math.cos((lat * Math.PI) / 180);
+	let nearestDistrict;
+	let nearestDistance = Number.POSITIVE_INFINITY;
+	for (const district of districts) {
+		if (!district.coordinate) continue;
+		const latitudeDifference = district.coordinate.lat - lat;
+		const longitudeDifference = (district.coordinate.lon - lon) * latitudeScale;
+		const distance = latitudeDifference ** 2 + longitudeDifference ** 2;
+		if (distance < nearestDistance) {
+			nearestDistance = distance;
+			nearestDistrict = district;
+		}
+	}
+	return provinces.find((province) => province.id === nearestDistrict?.province_id) ?? null;
+}
+
+function returnLocationSelection(name, province, district, lat, lon) {
+	const params = new URLSearchParams(window.location.search);
+	const returnPath = params.get('return') || params.get('next');
+	if (!returnPath) return;
+
+	const payload = {
+		name: name ?? '',
+		province: province ?? '',
+		district: district ?? '',
+		lat: Number(lat),
+		lon: Number(lon),
+	};
+
+	sessionStorage.setItem('weatherguard_pending_location', JSON.stringify(payload));
+	window.location.href = returnPath.startsWith('/') ? returnPath : '/locations';
 }
 
 async function fetchJson(url) {
@@ -268,6 +338,12 @@ async function loadDistricts(province) {
 async function selectProvince(provinceId) {
 	const province = provinces.find((item) => item.id === provinceId);
 	if (!province) return;
+	const params = new URLSearchParams(window.location.search);
+	const returnPath = params.get('return') || params.get('next');
+	if (returnPath && params.get('pick') !== '1') {
+		returnLocationSelection('', makeProvinceName(province), '', province.coordinate?.lat, province.coordinate?.lon);
+		return;
+	}
 	selectedProvince = province;
 	selectedDistrict = null;
 	provinceBrowser.hidden = true;
@@ -314,6 +390,13 @@ async function selectProvince(provinceId) {
 function selectDistrict(districtId) {
 	const district = districts.find((item) => item.id === districtId);
 	if (!district?.coordinate) return;
+	const params = new URLSearchParams(window.location.search);
+	const returnPath = params.get('return') || params.get('next');
+	if (returnPath) {
+		const province = provinces.find((item) => item.id === district.province_id);
+		returnLocationSelection(makeDistrictName(district), province ? makeProvinceName(province) : '', makeDistrictName(district), district.coordinate.lat, district.coordinate.lon);
+		return;
+	}
 	selectedDistrict = district;
 	updateMarkerLabels();
 	const markerItem = locationMarkers.find(({ item }) => item.id === district.id)?.marker;
@@ -418,6 +501,38 @@ async function initializeMap() {
 	}
 	map = L.map(mapElement, { zoomControl: true, minZoom: 4, maxZoom: 12 }).setView([15.2, 101.1], 5);
 	map.on('zoomend moveend', updateMarkerLabels);
+	const pickerMode = new URLSearchParams(window.location.search).get('pick') === '1';
+	const confirmSelectionButton = document.querySelector('#map-pick-confirm');
+	if (pickerMode) {
+		map.on('click', (event) => {
+			mapSelectionPosition = event.latlng;
+			if (!mapSelectionMarker) {
+				mapSelectionMarker = L.marker(event.latlng, { draggable: true }).addTo(map);
+				mapSelectionMarker.on('dragend', () => {
+					mapSelectionPosition = mapSelectionMarker.getLatLng();
+				});
+			} else {
+				mapSelectionMarker.setLatLng(event.latlng);
+			}
+			confirmSelectionButton.hidden = false;
+		});
+		confirmSelectionButton.addEventListener('click', async () => {
+			if (!mapSelectionPosition) return;
+			confirmSelectionButton.disabled = true;
+			const originalText = confirmSelectionButton.textContent;
+			confirmSelectionButton.textContent = 'กำลังระบุจังหวัด...';
+			const position = mapSelectionPosition;
+			const detectedProvince = await reverseGeocodeProvince(position.lat, position.lng)
+				?? findNearestProvince(position.lat, position.lng)
+				?? selectedProvince;
+			const province = detectedProvince ? makeProvinceName(detectedProvince) : '';
+			const district = selectedDistrict ? makeDistrictName(selectedDistrict) : '';
+			const name = district || province || 'ตำแหน่งที่เลือก';
+			returnLocationSelection(name, province, district, position.lat, position.lng);
+			confirmSelectionButton.disabled = false;
+			confirmSelectionButton.textContent = originalText;
+		});
+	}
 	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 18,
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -430,6 +545,11 @@ async function initializeMap() {
 		setOverlay('', '', false);
 		window.setTimeout(() => map.invalidateSize(), 100);
 		refreshProvinceWeather();
+		loadBorderWeather({
+			list: document.querySelector('#border-weather-list'),
+			status: document.querySelector('#border-weather-status'),
+			getProvinceCoordinate: (region) => provinces.find((province) => province.name.th === region.thaiProvince)?.coordinate,
+		});
 	} catch (error) {
 		setOverlay('โหลดข้อมูลแผนที่ไม่สำเร็จ', 'ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วกดอัปเดตอีกครั้ง', true, true);
 		setStatus('โหลดข้อมูลไม่สำเร็จ', 'error');

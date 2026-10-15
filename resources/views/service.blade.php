@@ -32,7 +32,7 @@
             <section class="auth-form-panel">
                 <span class="service-eyebrow" id="auth-kicker">SIGN IN</span>
                 <h2 id="auth-heading">เข้าสู่ระบบ</h2>
-                <p class="auth-notice" id="auth-notice" role="status" hidden></p>
+                <p class="auth-notice" id="auth-notice" role="status" @if(!session('status')) hidden @endif>{{ session('status') }}</p>
                 <form id="auth-form">
                     <label id="name-field" hidden>ชื่อที่แสดง<input name="name" autocomplete="name" maxlength="255"></label>
                     <label>อีเมล<input name="email" type="email" autocomplete="email" required maxlength="255"></label>
@@ -41,6 +41,7 @@
                     <button class="primary-button" id="auth-submit" type="submit">เข้าสู่ระบบ</button>
                 </form>
                 <p class="auth-switch"><span id="auth-switch-copy">ยังไม่มีบัญชี?</span> <button id="auth-mode-toggle" type="button">สมัครสมาชิก</button></p>
+                <a class="auth-forgot-link" id="auth-forgot-link" href="{{ route('password.request') }}">ลืมรหัสผ่าน?</a>
             </section>
         </section>
 
