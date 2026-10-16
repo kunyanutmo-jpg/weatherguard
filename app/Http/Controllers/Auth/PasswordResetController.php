@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,9 +23,25 @@ class PasswordResetController extends Controller
     public function sendLink(Request $request): RedirectResponse
     {
         $request->validate(['email' => ['required', 'email', 'max:255']]);
-        Password::sendResetLink($request->only('email'));
+        $redirect = back()->with('status', 'หากอีเมลนี้ลงทะเบียนไว้ ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้');
 
-        return back()->with('status', 'หากอีเมลนี้ลงทะเบียนไว้ ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้');
+        if (app()->environment('local') && config('mail.default') === 'log') {
+            $resetUrl = null;
+            Password::sendResetLink($request->only('email'), function (CanResetPassword $user, string $token) use (&$resetUrl): void {
+                $resetUrl = route('password.reset', [
+                    'token' => $token,
+                    'email' => $user->getEmailForPasswordReset(),
+                ]);
+            });
+
+            if ($resetUrl) {
+                $redirect->with('reset_url', $resetUrl);
+            }
+        } else {
+            Password::sendResetLink($request->only('email'));
+        }
+
+        return $redirect;
     }
 
     public function resetForm(Request $request, string $token): View

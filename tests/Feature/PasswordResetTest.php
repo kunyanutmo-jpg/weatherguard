@@ -47,4 +47,29 @@ class PasswordResetTest extends TestCase
             'password' => 'new-secure-password',
         ])->assertOk();
     }
+
+    public function test_local_log_mailer_displays_a_working_reset_link(): void
+    {
+        $this->app['env'] = 'local';
+        config(['mail.default' => 'log']);
+        $user = User::factory()->create(['email' => 'local-reset@example.test']);
+
+        $this->post('/forgot-password', ['email' => $user->email])
+            ->assertRedirect()
+            ->assertSessionHas('reset_url', fn (string $url): bool => str_contains($url, '/reset-password/'));
+
+        $resetUrl = session('reset_url');
+        $token = basename(parse_url($resetUrl, PHP_URL_PATH));
+
+        $this->get($resetUrl)->assertOk();
+        $this->post('/reset-password', [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'new-secure-password',
+            'password_confirmation' => 'new-secure-password',
+        ])->assertRedirect(route('login'))
+            ->assertSessionHas('status');
+
+        $this->assertTrue(Hash::check('new-secure-password', $user->refresh()->password));
+    }
 }

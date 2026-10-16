@@ -35,6 +35,9 @@
                 @if (session('status'))
                     <p class="auth-notice" role="status">{{ session('status') }}</p>
                 @endif
+                @if (session('reset_url'))
+                    <p class="auth-notice" role="status">โหมดพัฒนา: <a href="{{ session('reset_url') }}">เปิดหน้าตั้งรหัสผ่านใหม่</a></p>
+                @endif
                 @if ($errors->any())
                     <p class="form-error" role="alert">{{ $errors->first() }}</p>
                 @endif
