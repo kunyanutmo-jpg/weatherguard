@@ -56,7 +56,7 @@
 
             <div class="sidebar-heading">พื้นที่ที่ติดตาม <a class="icon-button sidebar-add" id="open-locations" href="{{ route('locations.index') }}" aria-label="เพิ่มพื้นที่"><svg class="icon"><use href="#i-plus"/></svg></a></div>
             <div class="location-list" id="location-list">
-                <div class="location-list-empty">กำลังโหลดพื้นที่ติดตาม...</div>
+                <div class="location-list-empty">กำลังโหลดพื้นที่ติดตาม....</div>
             </div>
 
             <div class="sidebar-bottom">
