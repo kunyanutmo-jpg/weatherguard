@@ -23,7 +23,7 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return $request->user(); ///ds
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
