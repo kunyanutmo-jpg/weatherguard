@@ -50,6 +50,7 @@ authForm.addEventListener('submit', async (event) => {
 	button.disabled = true;
 	authError.hidden = true;
 	const formData = new FormData(authForm);
+
 	const registering = authMode === 'register';
 	const payload = {
 		email: formData.get('email'),
@@ -63,6 +64,7 @@ authForm.addEventListener('submit', async (event) => {
 			headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
 			body: JSON.stringify(payload),
 		});
+
 		const result = await response.json();
 		if (!response.ok) {
 			const validationMessages = Object.values(result.errors ?? {}).flat();
@@ -76,6 +78,7 @@ authForm.addEventListener('submit', async (event) => {
 		}
 
 		sessionStorage.setItem(tokenKey, result.token);
+		
 		window.location.assign(safeNextPath());
 	} catch (error) {
 		authError.textContent = error.message;

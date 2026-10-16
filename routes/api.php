@@ -28,9 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('tracked-locations', TrackedLocationController::class);
-    Route::get('/hazards', [HazardController::class, 'events']);
-    Route::get('/risk-areas', [HazardController::class, 'riskAreas']);
-    Route::get('/alerts', [HazardAlertController::class, 'index']);
-    Route::patch('/alerts/{alert}/read', [HazardAlertController::class, 'markRead']);
-    Route::post('/alerts/read-all', [HazardAlertController::class, 'markAllRead']);
+    Route::get('/hazards', [HazardController::class, 'events']); //พื้นที่เสี่ยงภัย
+    Route::get('/risk-areas', [HazardController::class, 'riskAreas']); //ภัยพิบัติ
+    Route::get('/alerts', [HazardAlertController::class, 'index']); //แจ้งเตือน
+    Route::patch('/alerts/{alert}/read', [HazardAlertController::class, 'markRead']); //อ่านแจ้งทีละรายการ
+    Route::post('/alerts/read-all', [HazardAlertController::class, 'markAllRead']); //อ่านทั้งหมด
 });
